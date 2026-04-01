@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>내 계정 — CloudPress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <style>
+    .field{margin-bottom:18px}
+    .field label{display:block;font-size:.83rem;font-weight:500;color:var(--muted);margin-bottom:7px}
+    .field input{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:.92rem;transition:border-color .2s,box-shadow .2s;outline:none}
+    .field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+    .field input:disabled{opacity:.5;cursor:not-allowed}
+    .content-inner{max-width:600px}
+  </style>
+</head>
+<body>
+<div class="app-wrap">
+  <aside class="sidebar" id="sidebar">
+    <a href="/dashboard.html" class="sb-logo">
+      <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="currentColor" opacity="0.5"/>
+        <circle cx="14" cy="14" r="2.2" fill="currentColor"/>
+      </svg>
+      CloudPress
+    </a>
+    <nav class="sb-nav">
+      <div class="sb-section">
+        <a href="/dashboard.html" class="sb-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          대시보드
+        </a>
+        <a href="/create.html" class="sb-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          사이트 추가
+        </a>
+        <a href="/account.html" class="sb-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          내 계정
+        </a>
+        <button class="sb-link danger" onclick="CP.logout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          로그아웃
+        </button>
+      </div>
+    </nav>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">?</div>
+      <div class="sb-uinfo">
+        <div class="sb-uname" id="sbName">—</div>
+        <div class="sb-uemail" id="sbEmail">—</div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="sidebar-toggle" onclick="openSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <span class="topbar-title">내 계정</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="content-inner">
+        <!-- Profile -->
+        <div class="card">
+          <div class="card-title">프로필 정보</div>
+          <div class="field">
+            <label>이름</label>
+            <input type="text" id="editName" placeholder="이름"/>
+          </div>
+          <div class="field">
+            <label>이메일</label>
+            <input type="email" id="editEmail" placeholder="이메일" disabled/>
+          </div>
+          <div class="field">
+            <label>가입일</label>
+            <input type="text" id="editJoined" disabled/>
+          </div>
+          <button class="btn btn-primary" onclick="saveName()">변경사항 저장</button>
+        </div>
+
+        <!-- Password -->
+        <div class="card">
+          <div class="card-title">비밀번호 변경</div>
+          <div class="field">
+            <label>현재 비밀번호</label>
+            <input type="password" id="curPass" placeholder="현재 비밀번호"/>
+          </div>
+          <div class="field">
+            <label>새 비밀번호</label>
+            <input type="password" id="newPass" placeholder="최소 8자"/>
+          </div>
+          <div class="field">
+            <label>새 비밀번호 확인</label>
+            <input type="password" id="newPass2" placeholder="비밀번호 재입력"/>
+          </div>
+          <button class="btn btn-primary" onclick="changePassword()">비밀번호 변경</button>
+        </div>
+
+        <!-- Plan -->
+        <div class="card">
+          <div class="card-title">현재 플랜</div>
+          <div class="info-row">
+            <span class="label">플랜</span>
+            <span class="value" id="planName">—</span>
+          </div>
+          <div class="info-row">
+            <span class="label">사이트 제한</span>
+            <span class="value" id="planSites">—</span>
+          </div>
+          <div class="info-row">
+            <span class="label">스토리지</span>
+            <span class="value" id="planStorage">—</span>
+          </div>
+          <div style="margin-top:16px">
+            <a href="/pricing.html" class="btn btn-primary btn-sm">플랜 업그레이드</a>
+          </div>
+        </div>
+
+        <!-- Danger -->
+        <div class="card" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04)">
+          <div class="card-title" style="color:var(--error)">계정 삭제</div>
+          <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px;line-height:1.6">계정을 삭제하면 모든 WordPress 사이트와 데이터가 영구적으로 삭제됩니다.</p>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteAccount()">계정 삭제</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+  if (!CP.requireAuth()) throw 0;
+  const user = CP.getCurrentUser();
+
+  document.getElementById('sbAvatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('sbName').textContent = user.name;
+  document.getElementById('sbEmail').textContent = user.email;
+  document.getElementById('editName').value = user.name;
+  document.getElementById('editEmail').value = user.email;
+  document.getElementById('editJoined').value = CP.formatDate(user.createdAt);
+
+  const plan = CP.planInfo(user.plan);
+  document.getElementById('planName').textContent = plan.name;
+  document.getElementById('planSites').textContent = plan.sites === -1 ? '무제한' : plan.sites + '개';
+  document.getElementById('planStorage').textContent = plan.storage;
+
+  function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+  function saveName() {
+    const name = document.getElementById('editName').value.trim();
+    if (!name) { showToast('이름을 입력해주세요.', 'error'); return; }
+    const users = CP.getUsers();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) { users[idx].name = name; CP.saveUsers(users); }
+    showToast('프로필이 업데이트되었습니다.', 'success');
+    document.getElementById('sbName').textContent = name;
+  }
+
+  function changePassword() {
+    const cur = document.getElementById('curPass').value;
+    const nw = document.getElementById('newPass').value;
+    const nw2 = document.getElementById('newPass2').value;
+    if (!cur || !nw || !nw2) { showToast('모든 필드를 입력해주세요.', 'error'); return; }
+    if (CP.hashPass(cur) !== user.password) { showToast('현재 비밀번호가 올바르지 않습니다.', 'error'); return; }
+    if (nw.length < 8) { showToast('새 비밀번호는 최소 8자 이상이어야 합니다.', 'error'); return; }
+    if (nw !== nw2) { showToast('새 비밀번호가 일치하지 않습니다.', 'error'); return; }
+    const users = CP.getUsers();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) { users[idx].password = CP.hashPass(nw); CP.saveUsers(users); }
+    showToast('비밀번호가 변경되었습니다.', 'success');
+    document.getElementById('curPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('newPass2').value = '';
+  }
+
+  function confirmDeleteAccount() {
+    if (!confirm('정말로 계정을 삭제하시겠습니까? 모든 데이터가 영구적으로 삭제됩니다.')) return;
+    const users = CP.getUsers().filter(u => u.id !== user.id);
+    CP.saveUsers(users);
+    // Delete sites
+    const sites = CP.getSites().filter(s => s.userId !== user.id);
+    CP.saveSites(sites);
+    CP.logout();
+  }
+</script>
+</body>
+</html>
