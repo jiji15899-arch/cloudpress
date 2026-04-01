@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>로그인 / 회원가입 — CloudPress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #08080e;
+      --surface: #0f0f18;
+      --surface2: #161622;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text: #f0f0f5;
+      --muted: rgba(240,240,245,0.45);
+      --accent: #f97316;
+      --accent2: #ec4899;
+      --success: #22c55e;
+      --error: #ef4444;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+    html, body { height: 100%; font-family: var(--font-body); background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+    /* Background */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(249,115,22,.12) 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 60% at 80% 100%, rgba(236,72,153,.08) 0%, transparent 60%);
+    }
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* Layout */
+    .page { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card {
+      width: 100%; max-width: 440px;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 20px; padding: 44px 40px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 40px 80px rgba(0,0,0,.5);
+    }
+
+    /* Logo */
+    .logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--text); text-decoration: none; margin-bottom: 36px; }
+    .logo svg { opacity: .9; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 32px; }
+    .tab { flex: 1; padding: 9px; border: none; background: none; color: var(--muted); font-family: var(--font-body); font-size: .9rem; font-weight: 500; border-radius: 7px; cursor: pointer; transition: all .2s; }
+    .tab.active { background: var(--surface2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+
+    /* Form */
+    .form-title { font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    .form-sub { color: var(--muted); font-size: .9rem; margin-bottom: 28px; line-height: 1.5; }
+
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: .83rem; font-weight: 500; color: var(--muted); margin-bottom: 7px; letter-spacing: .02em; }
+    .field input {
+      width: 100%; padding: 11px 14px;
+      background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 10px; color: var(--text); font-family: var(--font-body); font-size: .92rem;
+      transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(249,115,22,.12); }
+    .field input.error { border-color: var(--error); }
+    .field .err-msg { font-size: .8rem; color: var(--error); margin-top: 5px; display: none; }
+    .field.has-err .err-msg { display: block; }
+
+    .btn-submit {
+      width: 100%; padding: 13px; margin-top: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 10px; color: #fff; font-family: var(--font-body); font-size: .95rem; font-weight: 600;
+      cursor: pointer; transition: opacity .2s, transform .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { opacity: .9; }
+    .btn-submit:active { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0; color: var(--muted); font-size: .8rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .terms { font-size: .8rem; color: var(--muted); text-align: center; margin-top: 18px; line-height: 1.6; }
+    .terms a { color: var(--accent); text-decoration: none; }
+
+    /* Panel visibility */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Loading spinner */
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .cp-toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      padding: 12px 20px; border-radius: 10px;
+      font-family: var(--font-body); font-size: .88rem; font-weight: 500;
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+      transform: translateY(20px); opacity: 0; transition: all .25s;
+      pointer-events: none;
+    }
+    .cp-toast.show { transform: translateY(0); opacity: 1; }
+    .cp-toast.success { border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.1); color: var(--success); }
+    .cp-toast.error { border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.1); color: var(--error); }
+
+    @media (max-width:480px) {
+      .card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grid-bg"></div>
+
+  <div class="page">
+    <div class="card">
+      <a href="/" class="logo">
+        <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="currentColor" opacity="0.5"/>
+          <circle cx="14" cy="14" r="2.2" fill="currentColor"/>
+        </svg>
+        CloudPress
+      </a>
+
+      <div class="tabs">
+        <button class="tab active" id="tabLogin" onclick="switchTab('login')">로그인</button>
+        <button class="tab" id="tabSignup" onclick="switchTab('signup')">회원가입</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div class="panel active" id="panelLogin">
+        <h1 class="form-title">다시 오셨군요 👋</h1>
+        <p class="form-sub">이메일과 비밀번호로 로그인하세요.</p>
+
+        <form id="formLogin" onsubmit="doLogin(event)">
+          <div class="field" id="fldLemail">
+            <label>이메일 주소</label>
+            <input type="email" id="lemail" placeholder="you@example.com" autocomplete="email"/>
+            <div class="err-msg" id="errLemail"></div>
+          </div>
+          <div class="field" id="fldLpass">
+            <label>비밀번호</label>
+            <input type="password" id="lpass" placeholder="••••••••" autocomplete="current-password"/>
+            <div class="err-msg" id="errLpass"></div>
+          </div>
+          <button type="submit" class="btn-submit" id="btnLogin">
+            <span id="btnLoginTxt">로그인</span>
+            <div class="spinner" id="spinLogin" style="display:none"></div>
+          </button>
+        </form>
+
+        <div class="terms">
+          계정이 없으신가요? <a href="#" onclick="switchTab('signup');return false">회원가입</a>
+        </div>
+      </div>
+
+      <!-- SIGNUP PANEL -->
+      <div class="panel" id="panelSignup">
+        <h1 class="form-title">무료로 시작하세요 🚀</h1>
+        <p class="form-sub">30초 만에 가입하고 WordPress 호스팅을 시작하세요.</p>
+
+        <form id="formSignup" onsubmit="doSignup(event)">
+          <div class="field" id="fldSname">
+            <label>이름</label>
+            <input type="text" id="sname" placeholder="홍길동" autocomplete="name"/>
+            <div class="err-msg" id="errSname"></div>
+          </div>
+          <div class="field" id="fldSemail">
+            <label>이메일 주소</label>
+            <input type="email" id="semail" placeholder="you@example.com" autocomplete="email"/>
+            <div class="err-msg" id="errSemail"></div>
+          </div>
+          <div class="field" id="fldSpass">
+            <label>비밀번호</label>
+            <input type="password" id="spass" placeholder="최소 8자" autocomplete="new-password"/>
+            <div class="err-msg" id="errSpass"></div>
+          </div>
+          <div class="field" id="fldSpass2">
+            <label>비밀번호 확인</label>
+            <input type="password" id="spass2" placeholder="••••••••" autocomplete="new-password"/>
+            <div class="err-msg" id="errSpass2"></div>
+          </div>
+          <button type="submit" class="btn-submit" id="btnSignup">
+            <span id="btnSignupTxt">무료로 가입하기</span>
+            <div class="spinner" id="spinSignup" style="display:none"></div>
+          </button>
+        </form>
+
+        <div class="terms">
+          가입하면 <a href="#">이용약관</a> 및 <a href="#">개인정보처리방침</a>에 동의하는 것으로 간주됩니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Redirect if already logged in
+    if (CP.getSession()) location.href = '/dashboard.html';
+
+    // Check URL param for tab
+    const urlTab = new URLSearchParams(location.search).get('tab');
+    if (urlTab === 'signup') switchTab('signup');
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tabLogin').classList.toggle('active', isLogin);
+      document.getElementById('tabSignup').classList.toggle('active', !isLogin);
+      document.getElementById('panelLogin').classList.toggle('active', isLogin);
+      document.getElementById('panelSignup').classList.toggle('active', !isLogin);
+    }
+
+    function setLoading(form, loading) {
+      if (form === 'login') {
+        document.getElementById('btnLoginTxt').style.display = loading ? 'none' : '';
+        document.getElementById('spinLogin').style.display = loading ? '' : 'none';
+        document.getElementById('btnLogin').disabled = loading;
+      } else {
+        document.getElementById('btnSignupTxt').style.display = loading ? 'none' : '';
+        document.getElementById('spinSignup').style.display = loading ? '' : 'none';
+        document.getElementById('btnSignup').disabled = loading;
+      }
+    }
+
+    function setFieldErr(id, msg) {
+      const fld = document.getElementById('fld' + id);
+      const err = document.getElementById('err' + id);
+      if (fld) fld.classList.toggle('has-err', !!msg);
+      if (err) err.textContent = msg || '';
+    }
+    function clearErrs(...ids) { ids.forEach(id => setFieldErr(id, '')); }
+
+    function doLogin(e) {
+      e.preventDefault();
+      clearErrs('Lemail', 'Lpass');
+      const email = document.getElementById('lemail').value.trim();
+      const pass  = document.getElementById('lpass').value;
+      let ok = true;
+      if (!email) { setFieldErr('Lemail', '이메일을 입력해주세요.'); ok = false; }
+      if (!pass)  { setFieldErr('Lpass',  '비밀번호를 입력해주세요.'); ok = false; }
+      if (!ok) return;
+
+      setLoading('login', true);
+      setTimeout(() => {
+        const res = CP.login(email, pass);
+        setLoading('login', false);
+        if (res.ok) {
+          showToast('로그인 성공!', 'success');
+          setTimeout(() => { location.href = '/dashboard.html'; }, 600);
+        } else {
+          setFieldErr('Lpass', res.msg);
+        }
+      }, 800);
+    }
+
+    function doSignup(e) {
+      e.preventDefault();
+      clearErrs('Sname', 'Semail', 'Spass', 'Spass2');
+      const name  = document.getElementById('sname').value.trim();
+      const email = document.getElementById('semail').value.trim();
+      const pass  = document.getElementById('spass').value;
+      const pass2 = document.getElementById('spass2').value;
+      let ok = true;
+      if (!name)          { setFieldErr('Sname',  '이름을 입력해주세요.'); ok = false; }
+      if (!email)         { setFieldErr('Semail', '이메일을 입력해주세요.'); ok = false; }
+      if (pass.length < 8){ setFieldErr('Spass',  '비밀번호는 최소 8자 이상이어야 합니다.'); ok = false; }
+      if (pass !== pass2) { setFieldErr('Spass2', '비밀번호가 일치하지 않습니다.'); ok = false; }
+      if (!ok) return;
+
+      setLoading('signup', true);
+      setTimeout(() => {
+        const res = CP.register(name, email, pass);
+        setLoading('signup', false);
+        if (res.ok) {
+          showToast('가입 완료! 대시보드로 이동합니다.', 'success');
+          setTimeout(() => { location.href = '/dashboard.html'; }, 800);
+        } else {
+          setFieldErr('Semail', res.msg);
+        }
+      }, 900);
+    }
+  </script>
+</body>
+</html>
