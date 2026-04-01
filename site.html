@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>사이트 관리 — CloudPress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <style>
+    .quick-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:28px}
+    .qa-btn{
+      background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;
+      text-decoration:none;color:var(--text);
+    }
+    .qa-btn:hover{border-color:var(--border2);transform:translateY(-2px)}
+    .qa-icon{
+      width:40px;height:40px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 10px;
+    }
+    .qa-label{font-size:.8rem;font-weight:600}
+
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+    .toggle-row:last-child{border-bottom:none}
+    .tr-info{flex:1}
+    .tr-name{font-size:.88rem;font-weight:600}
+    .tr-desc{font-size:.78rem;color:var(--muted);margin-top:2px}
+    .toggle{width:44px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:all .2s}
+    .toggle.on{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4)}
+    .toggle.on::after{transform:translateX(20px);background:var(--success)}
+
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+    .modal-overlay.show{opacity:1;pointer-events:all}
+    .modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:440px;width:100%;box-shadow:0 40px 80px rgba(0,0,0,.5)}
+    .modal-title{font-family:var(--font-head);font-size:1.1rem;font-weight:700;margin-bottom:8px}
+    .modal-sub{font-size:.88rem;color:var(--muted);margin-bottom:24px;line-height:1.6}
+    .modal-input{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;margin-bottom:18px;transition:border-color .2s}
+    .modal-input:focus{border-color:var(--error)}
+    .modal-btns{display:flex;gap:10px}
+
+    .ssl-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:600}
+    .ssl-badge.valid{background:rgba(34,197,94,.1);color:var(--success);border:1px solid rgba(34,197,94,.2)}
+    .ssl-badge.expired{background:rgba(239,68,68,.1);color:var(--error);border:1px solid rgba(239,68,68,.2)}
+  </style>
+</head>
+<body>
+<div class="app-wrap">
+  <aside class="sidebar" id="sidebar">
+    <a href="/dashboard.html" class="sb-logo">
+      <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="currentColor" opacity="0.5"/>
+        <circle cx="14" cy="14" r="2.2" fill="currentColor"/>
+      </svg>
+      CloudPress
+    </a>
+    <nav class="sb-nav">
+      <div class="sb-section">
+        <a href="/dashboard.html" class="sb-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          대시보드
+        </a>
+        <a href="/create.html" class="sb-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          사이트 추가
+        </a>
+      </div>
+      <div class="sb-section">
+        <button class="sb-link danger" onclick="CP.logout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          로그아웃
+        </button>
+      </div>
+    </nav>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">?</div>
+      <div class="sb-uinfo">
+        <div class="sb-uname" id="sbName">—</div>
+        <div class="sb-uemail" id="sbEmail">—</div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="sidebar-toggle" onclick="openSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title" id="tbSiteName">사이트 관리</div>
+          <div style="font-size:.75rem;color:var(--muted)" id="tbDomain">—</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a id="topWpBtn" href="#" target="_blank" class="btn btn-primary btn-sm">WP 관리자</a>
+        <a href="/dashboard.html" class="btn btn-ghost btn-sm">← 대시보드</a>
+      </div>
+    </div>
+
+    <div class="content" id="siteContent" style="display:none">
+
+      <!-- Status bar -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;flex-wrap:wrap">
+        <div class="site-status" style="display:flex;align-items:center;gap:6px">
+          <div class="status-dot active" id="statusDot"></div>
+          <span class="status-text active" id="statusText">운영 중</span>
+        </div>
+        <a id="siteLink" href="#" target="_blank" style="font-size:.82rem;color:var(--accent);text-decoration:none">사이트 보기 →</a>
+        <div style="font-size:.82rem;color:var(--muted)" id="createdAt">개설일: —</div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-actions">
+        <a id="qaWpAdmin" href="#" target="_blank" class="qa-btn">
+          <div class="qa-icon" style="background:rgba(249,115,22,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#f97316" stroke-width="1.5"/><path d="M12 8v4l3 3" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">WP 관리자</div>
+        </a>
+        <button class="qa-btn" onclick="doBackup()">
+          <div class="qa-icon" style="background:rgba(99,102,241,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="1.5"/><path d="M12 6v6l4 2" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">백업 생성</div>
+        </button>
+        <button class="qa-btn" onclick="showTab('ssl')">
+          <div class="qa-icon" style="background:rgba(34,197,94,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#22c55e" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#22c55e" stroke-width="1.5"/></svg></div>
+          <div class="qa-label">SSL 관리</div>
+        </button>
+        <button class="qa-btn" onclick="showTab('settings')">
+          <div class="qa-icon" style="background:rgba(234,179,8,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#eab308" stroke-width="1.5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="#eab308" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="qa-label">설정</div>
+        </button>
+        <a id="qaVisit" href="#" target="_blank" class="qa-btn">
+          <div class="qa-icon" style="background:rgba(236,72,153,.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#ec4899" stroke-width="1.5"/><path d="M2 12h20M12 2c-3 3-4 6-4 10s1 7 4 10M12 2c3 3 4 6 4 10s-1 7-4 10" stroke="#ec4899" stroke-width="1.5"/></svg></div>
+          <div class="qa-label">사이트 방문</div>
+        </a>
+      </div>
+
+      <!-- Tabs -->
+      <div class="page-tabs">
+        <button class="page-tab active" onclick="showTab('overview')">개요</button>
+        <button class="page-tab" onclick="showTab('ssl')">SSL/TLS</button>
+        <button class="page-tab" onclick="showTab('backups')">백업</button>
+        <button class="page-tab" onclick="showTab('settings')">설정</button>
+        <button class="page-tab" onclick="showTab('danger')" style="color:var(--error)">위험 구역</button>
+      </div>
+
+      <!-- OVERVIEW TAB -->
+      <div id="tabOverview">
+        <div class="card">
+          <div class="card-title">서버 정보</div>
+          <div class="info-row"><span class="label">도메인</span><span class="value" id="infoUrl">—</span></div>
+          <div class="info-row"><span class="label">IP 주소</span><span class="value" id="infoIP">—</span></div>
+          <div class="info-row"><span class="label">WordPress 버전</span><span class="value" id="infoWP">—</span></div>
+          <div class="info-row"><span class="label">PHP 버전</span><span class="value" id="infoPHP">—</span></div>
+          <div class="info-row"><span class="label">데이터베이스</span><span class="value">MySQL 8.0 (MariaDB 11)</span></div>
+          <div class="info-row"><span class="label">스토리지 사용</span><span class="value" id="infoStorage">—</span></div>
+          <div class="info-row"><span class="label">RAM</span><span class="value">8 GB DDR5</span></div>
+          <div class="info-row"><span class="label">CPU</span><span class="value">8 vCore AMD EPYC</span></div>
+          <div class="info-row"><span class="label">네트워크</span><span class="value">10 Gbps · 무제한 트래픽</span></div>
+          <div class="info-row"><span class="label">플랜</span><span class="value" id="infoPlan">—</span></div>
+          <div class="info-row"><span class="label">개설일</span><span class="value" id="infoDate">—</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Cloudflare 보안</div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">DDoS 방어</div><div class="tr-desc">L3/L4/L7 자동 탐지 및 차단</div></div>
+            <div class="toggle on" id="togDdos" onclick="toggleFeature(this,'DDoS 방어')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">WAF (웹 방화벽)</div><div class="tr-desc">OWASP 규칙 기반 악성 트래픽 차단</div></div>
+            <div class="toggle on" id="togWaf" onclick="toggleFeature(this,'WAF')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">Bot 차단</div><div class="tr-desc">악성 크롤러 및 봇 자동 차단</div></div>
+            <div class="toggle" id="togBot" onclick="toggleFeature(this,'Bot 차단')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">캐시 최적화</div><div class="tr-desc">Cloudflare Edge Cache · 정적 파일 CDN</div></div>
+            <div class="toggle on" id="togCache" onclick="toggleFeature(this,'캐시 최적화')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSL TAB -->
+      <div id="tabSsl" style="display:none">
+        <div class="card">
+          <div class="card-title">SSL/TLS 인증서</div>
+          <div class="info-row">
+            <span class="label">상태</span>
+            <span class="value"><span class="ssl-badge valid">● 유효한 인증서</span></span>
+          </div>
+          <div class="info-row"><span class="label">인증서 발급기관</span><span class="value">Let's Encrypt (Cloudflare)</span></div>
+          <div class="info-row"><span class="label">인증서 유형</span><span class="value">DV (도메인 검증)</span></div>
+          <div class="info-row"><span class="label">만료일</span><span class="value" id="sslExpiry">—</span></div>
+          <div class="info-row"><span class="label">자동 갱신</span><span class="value" style="color:var(--success)">✓ 활성화됨</span></div>
+          <div class="info-row"><span class="label">HTTPS 강제 리디렉션</span><span class="value" style="color:var(--success)">✓ 활성화됨</span></div>
+          <div class="info-row"><span class="label">HSTS</span><span class="value" style="color:var(--success)">✓ 설정됨</span></div>
+          <div class="info-row"><span class="label">TLS 버전</span><span class="value">TLS 1.3 (권장)</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">SSL 작업</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="showToast('인증서 갱신 요청이 접수되었습니다.','success')">인증서 수동 갱신</button>
+            <button class="btn btn-ghost" onclick="showToast('도메인 인증이 완료되었습니다.','success')">도메인 재인증</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACKUPS TAB -->
+      <div id="tabBackups" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <h3 style="font-family:var(--font-head);font-size:1rem;font-weight:700">백업 목록</h3>
+            <p style="font-size:.8rem;color:var(--muted);margin-top:3px">매일 자동 백업 생성 · 30일 보관</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="doBackup()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            즉시 백업
+          </button>
+        </div>
+        <div class="card" id="backupList">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="tabSettings" style="display:none">
+        <div class="card">
+          <div class="card-title">사이트 설정</div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">WordPress 자동 업데이트</div><div class="tr-desc">마이너 보안 업데이트 자동 적용</div></div>
+            <div class="toggle on" onclick="toggleFeature(this,'WordPress 자동 업데이트')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">플러그인 자동 업데이트</div><div class="tr-desc">설치된 플러그인 자동 업데이트</div></div>
+            <div class="toggle" onclick="toggleFeature(this,'플러그인 자동 업데이트')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">PHP 오류 로깅</div><div class="tr-desc">PHP 오류를 로그 파일에 기록</div></div>
+            <div class="toggle on" onclick="toggleFeature(this,'PHP 오류 로깅')"></div>
+          </div>
+          <div class="toggle-row">
+            <div class="tr-info"><div class="tr-name">Gzip 압축</div><div class="tr-desc">페이지 속도 향상을 위한 Gzip 압축</div></div>
+            <div class="toggle on" onclick="toggleFeature(this,'Gzip 압축')"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">관리자 비밀번호 재설정</div>
+          <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">WordPress 관리자 비밀번호를 재설정합니다.</p>
+          <div style="display:flex;gap:10px">
+            <input type="password" id="newWpPass" placeholder="새 비밀번호 (최소 8자)" style="flex:1;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:.88rem;outline:none"/>
+            <button class="btn btn-ghost" onclick="resetWpPassword()">변경</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DANGER TAB -->
+      <div id="tabDanger" style="display:none">
+        <div class="card danger-zone">
+          <div class="card-title">⚠️ 위험 구역</div>
+          <p style="font-size:.88rem;color:var(--muted);margin-bottom:20px;line-height:1.6">아래 작업은 되돌릴 수 없습니다. 신중하게 진행하세요.</p>
+
+          <div class="info-row" style="padding:16px 0">
+            <div>
+              <div style="font-size:.9rem;font-weight:600;margin-bottom:4px">WordPress 재설치</div>
+              <div style="font-size:.82rem;color:var(--muted)">모든 플러그인, 테마, 미디어가 삭제됩니다. DB는 유지됩니다.</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('재설치 기능은 현재 점검 중입니다.','info')">재설치</button>
+          </div>
+
+          <div class="info-row" style="padding:16px 0;border-bottom:none">
+            <div>
+              <div style="font-size:.9rem;font-weight:600;margin-bottom:4px;color:var(--error)">사이트 삭제</div>
+              <div style="font-size:.82rem;color:var(--muted)">사이트, 데이터베이스, 파일이 모두 영구 삭제됩니다.</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="openDeleteModal()">삭제</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Not found -->
+    <div class="content" id="notFound" style="display:none">
+      <div class="empty-state">
+        <div class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <h3>사이트를 찾을 수 없습니다</h3>
+        <p>요청한 사이트가 존재하지 않거나 삭제되었습니다.</p>
+        <a href="/dashboard.html" class="btn btn-primary">대시보드로 돌아가기</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--error)">🗑️ 사이트 삭제</div>
+    <div class="modal-sub">이 작업은 되돌릴 수 없습니다. 사이트와 모든 데이터가 영구 삭제됩니다.<br><br>계속하려면 아래에 도메인 이름을 입력하세요:</div>
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:8px">확인 도메인: <strong id="modalDomainLabel" style="color:var(--text)">—</strong></div>
+    <input type="text" class="modal-input" id="deleteConfirmInput" placeholder="도메인을 정확히 입력하세요"/>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeDeleteModal()">취소</button>
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmDelete()">영구 삭제</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  if (!CP.requireAuth()) throw 0;
+
+  const user = CP.getCurrentUser();
+  document.getElementById('sbAvatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('sbName').textContent = user.name;
+  document.getElementById('sbEmail').textContent = user.email;
+
+  function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+  // Load site
+  const params = new URLSearchParams(location.search);
+  const siteId = params.get('id');
+  let site = siteId ? CP.getSite(siteId) : null;
+
+  if (!site || site.userId !== user.id) {
+    document.getElementById('notFound').style.display = '';
+  } else {
+    document.getElementById('siteContent').style.display = '';
+    renderSite();
+  }
+
+  function renderSite() {
+    const url = 'https://' + site.domain;
+    const adminUrl = url + '/wp-admin';
+    const planInfo = CP.planInfo(site.plan);
+
+    document.getElementById('tbSiteName').textContent = site.name;
+    document.getElementById('tbDomain').textContent = site.domain;
+    document.getElementById('topWpBtn').href = adminUrl;
+    document.title = site.name + ' — CloudPress';
+
+    // Status
+    const isActive = site.status === 'active';
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    dot.className = 'status-dot ' + (isActive ? 'active' : 'inactive');
+    txt.className = 'status-text ' + (isActive ? 'active' : 'inactive');
+    txt.textContent = isActive ? '운영 중' : '비활성';
+
+    document.getElementById('siteLink').href = url;
+    document.getElementById('siteLink').textContent = url + ' →';
+    document.getElementById('createdAt').textContent = '개설일: ' + CP.formatDate(site.createdAt);
+
+    // Quick actions
+    document.getElementById('qaWpAdmin').href = adminUrl;
+    document.getElementById('qaVisit').href = url;
+
+    // Overview
+    document.getElementById('infoUrl').textContent = url;
+    document.getElementById('infoIP').textContent = site.ip || '—';
+    document.getElementById('infoWP').textContent = 'WordPress ' + (site.wpVersion || '6.5.4');
+    document.getElementById('infoPHP').textContent = 'PHP ' + (site.php || '8.3');
+    document.getElementById('infoStorage').textContent = (site.storageUsed || 0) + ' GB / ' + planInfo.storage;
+    document.getElementById('infoPlan').innerHTML = `<span class="plan-badge" style="background:rgba(249,115,22,.1);color:var(--accent);border:1px solid rgba(249,115,22,.2)">${planInfo.name}</span>`;
+    document.getElementById('infoDate').textContent = CP.formatDate(site.createdAt);
+
+    // SSL expiry
+    const expiry = new Date(site.createdAt + 90 * 86400000);
+    document.getElementById('sslExpiry').textContent = expiry.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric' });
+
+    // Backups
+    renderBackups();
+  }
+
+  function renderBackups() {
+    const list = document.getElementById('backupList');
+    const backups = (site.backups || []).slice().reverse();
+    if (!backups.length) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:.88rem;text-align:center;padding:20px 0">백업이 없습니다.</p>';
+      return;
+    }
+    list.innerHTML = backups.map(b => `
+      <div class="backup-item">
+        <div class="bi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6366f1" stroke-width="1.5"/><path d="M12 6v6l4 2" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div class="bi-info">
+          <div class="bi-date">${CP.formatDate(b.date)} ${b.type === 'manual' ? '<span style="color:var(--accent);font-size:.72rem;margin-left:6px">수동</span>' : '<span style="color:var(--muted);font-size:.72rem;margin-left:6px">자동</span>'}</div>
+          <div class="bi-size">${b.size}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="restoreBackup('${b.id}')">복원</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadBackup('${b.id}')">다운로드</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let activeTab = 'overview';
+  function showTab(tab) {
+    ['overview','ssl','backups','settings','danger'].forEach(t => {
+      document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? '' : 'none';
+    });
+    document.querySelectorAll('.page-tab').forEach((el, i) => {
+      const tabs = ['overview','ssl','backups','settings','danger'];
+      el.classList.toggle('active', tabs[i] === tab);
+    });
+    activeTab = tab;
+  }
+
+  function toggleFeature(el, name) {
+    el.classList.toggle('on');
+    const isOn = el.classList.contains('on');
+    showToast(`${name}가 ${isOn ? '활성화' : '비활성화'}되었습니다.`, 'success');
+  }
+
+  function doBackup() {
+    showToast('백업 생성 중...', 'info');
+    setTimeout(() => {
+      const b = { id: CP.genId(), date: Date.now(), size: (Math.random() * 80 + 20).toFixed(1) + ' MB', type: 'manual' };
+      if (!site.backups) site.backups = [];
+      site.backups.push(b);
+      CP.updateSite(site.id, { backups: site.backups });
+      site = CP.getSite(site.id);
+      renderBackups();
+      showToast('백업이 완료되었습니다. ✓', 'success');
+    }, 2000);
+  }
+
+  function restoreBackup(id) {
+    showToast('복원 기능은 Pro 플랜 이상에서 지원됩니다.', 'info');
+  }
+  function downloadBackup(id) {
+    showToast('백업 파일 다운로드가 시작되었습니다.', 'success');
+  }
+
+  function resetWpPassword() {
+    const pass = document.getElementById('newWpPass').value;
+    if (pass.length < 8) { showToast('비밀번호는 최소 8자 이상이어야 합니다.', 'error'); return; }
+    showToast('비밀번호가 성공적으로 변경되었습니다.', 'success');
+    document.getElementById('newWpPass').value = '';
+  }
+
+  function openDeleteModal() {
+    document.getElementById('modalDomainLabel').textContent = site.domain;
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('deleteModal').classList.add('show');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+  function confirmDelete() {
+    const input = document.getElementById('deleteConfirmInput').value.trim();
+    if (input !== site.domain) { showToast('도메인이 일치하지 않습니다.', 'error'); return; }
+    CP.deleteSite(site.id);
+    showToast('사이트가 삭제되었습니다.', 'success');
+    setTimeout(() => { location.href = '/dashboard.html'; }, 1200);
+  }
+</script>
+</body>
+</html>
