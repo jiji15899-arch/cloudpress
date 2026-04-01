@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>WordPress 사이트 개설 — CloudPress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="dashboard.css"/>
+  <style>
+    .wizard-wrap{max-width:600px;margin:0 auto}
+    .field{margin-bottom:20px}
+    .field label{display:block;font-size:.83rem;font-weight:500;color:var(--muted);margin-bottom:7px;letter-spacing:.02em}
+    .field input,.field select{
+      width:100%;padding:11px 14px;
+      background:var(--bg);border:1px solid var(--border2);
+      border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:.92rem;
+      transition:border-color .2s,box-shadow .2s;outline:none;
+    }
+    .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+    .field input.error{border-color:var(--error)}
+    .field .hint{font-size:.78rem;color:var(--muted);margin-top:5px}
+    .field .err-msg{font-size:.78rem;color:var(--error);margin-top:5px;display:none}
+    .field.has-err .err-msg{display:block}
+    .field.has-err input{border-color:var(--error)}
+    .field select option{background:var(--surface2);color:var(--text)}
+    .field .domain-wrap{display:flex;align-items:center;gap:0}
+    .field .domain-wrap input{border-radius:10px 0 0 10px;flex:1}
+    .field .domain-suffix{
+      padding:11px 14px;background:var(--surface2);border:1px solid var(--border2);
+      border-left:none;border-radius:0 10px 10px 0;color:var(--muted);font-size:.88rem;white-space:nowrap;
+    }
+
+    /* Plan selector */
+    .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+    .plan-opt{
+      border:2px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;
+      transition:all .2s;background:var(--surface);position:relative;
+    }
+    .plan-opt:hover{border-color:var(--border2)}
+    .plan-opt.selected{border-color:var(--accent);background:rgba(249,115,22,.05)}
+    .plan-opt input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+    .po-name{font-family:var(--font-head);font-size:.9rem;font-weight:700;margin-bottom:4px}
+    .po-price{font-size:.85rem;color:var(--accent);font-weight:600;margin-bottom:8px}
+    .po-feat{font-size:.75rem;color:var(--muted);line-height:1.6}
+    .po-badge{
+      position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff;font-size:.68rem;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap;
+    }
+
+    /* Provisioning */
+    .step-log{
+      background:var(--bg);border:1px solid var(--border);border-radius:10px;
+      padding:16px;font-size:.8rem;font-family:monospace;color:var(--muted);
+      height:140px;overflow-y:auto;margin-top:20px;line-height:1.8;
+    }
+    .step-log .ok{color:var(--success)}
+    .step-log .cur{color:var(--accent)}
+
+    /* Success */
+    .success-icon{
+      width:80px;height:80px;border-radius:50%;
+      background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 24px;
+    }
+    .cred-box{
+      background:var(--bg);border:1px solid var(--border2);border-radius:10px;
+      padding:18px 20px;margin-bottom:16px;
+    }
+    .cred-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+    .cred-row:last-child{border-bottom:none}
+    .cred-label{font-size:.8rem;color:var(--muted)}
+    .cred-val{font-size:.85rem;font-weight:600;font-family:monospace}
+    .copy-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:.75rem;color:var(--muted);cursor:pointer;transition:all .2s}
+    .copy-btn:hover{border-color:var(--border2);color:var(--text)}
+
+    @media(max-width:600px){
+      .plan-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="/dashboard.html" class="sb-logo">
+      <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M14 8L20 11V17L14 20L8 17V11L14 8Z" fill="currentColor" opacity="0.5"/>
+        <circle cx="14" cy="14" r="2.2" fill="currentColor"/>
+      </svg>
+      CloudPress
+    </a>
+    <nav class="sb-nav">
+      <div class="sb-section">
+        <a href="/dashboard.html" class="sb-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+          대시보드
+        </a>
+        <a href="/create.html" class="sb-link active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          사이트 추가
+        </a>
+      </div>
+      <div class="sb-section">
+        <button class="sb-link danger" onclick="CP.logout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          로그아웃
+        </button>
+      </div>
+    </nav>
+    <div class="sb-user">
+      <div class="sb-avatar" id="sbAvatar">?</div>
+      <div class="sb-uinfo">
+        <div class="sb-uname" id="sbName">—</div>
+        <div class="sb-uemail" id="sbEmail">—</div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="sidebar-toggle" onclick="openSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <span class="topbar-title">WordPress 사이트 개설</span>
+      </div>
+      <a href="/dashboard.html" class="btn btn-ghost btn-sm">← 돌아가기</a>
+    </div>
+
+    <div class="content">
+      <div class="wizard-wrap">
+
+        <!-- STEP BAR -->
+        <div class="step-bar" id="stepBar">
+          <div class="step active" id="step1">
+            <div class="step-circle">1</div>
+            <span class="step-label">사이트 정보</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step2">
+            <div class="step-circle">2</div>
+            <span class="step-label">WordPress 설정</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step3">
+            <div class="step-circle">3</div>
+            <span class="step-label">플랜 선택</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" id="step4">
+            <div class="step-circle">4</div>
+            <span class="step-label">개설 완료</span>
+          </div>
+        </div>
+
+        <!-- PANEL 1: Site Info -->
+        <div id="panel1">
+          <div class="card">
+            <div class="card-title">🌐 사이트 기본 정보</div>
+
+            <div class="field" id="fldSitename">
+              <label>사이트 이름</label>
+              <input type="text" id="siteName" placeholder="예: 나의 블로그" maxlength="60"/>
+              <div class="err-msg" id="errSitename">사이트 이름을 입력해주세요.</div>
+            </div>
+
+            <div class="field" id="fldDomain">
+              <label>도메인</label>
+              <div class="domain-wrap">
+                <input type="text" id="domainInput" placeholder="my-blog" oninput="sanitizeDomain(this)"/>
+                <span class="domain-suffix">.cloudpress.site</span>
+              </div>
+              <div class="hint">영문 소문자, 숫자, 하이픈만 사용 가능합니다.</div>
+              <div class="err-msg" id="errDomain">도메인을 입력해주세요.</div>
+            </div>
+
+            <div class="field">
+              <label>사이트 언어</label>
+              <select id="siteLang">
+                <option value="ko_KR" selected>한국어 (Korean)</option>
+                <option value="en_US">English (United States)</option>
+                <option value="ja">日本語 (Japanese)</option>
+                <option value="zh_CN">简体中文 (Chinese)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>PHP 버전</label>
+              <select id="phpVer">
+                <option value="8.3" selected>PHP 8.3 (권장)</option>
+                <option value="8.2">PHP 8.2</option>
+                <option value="8.1">PHP 8.1</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="goStep2()">
+              다음 단계
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- PANEL 2: WordPress Config -->
+        <div id="panel2" style="display:none">
+          <div class="card">
+            <div class="card-title">⚙️ WordPress 관리자 설정</div>
+
+            <div class="field" id="fldAdminuser">
+              <label>관리자 계정 (Username)</label>
+              <input type="text" id="adminUser" placeholder="admin" value="admin"/>
+              <div class="err-msg" id="errAdminuser">관리자 계정을 입력해주세요.</div>
+            </div>
+
+            <div class="field" id="fldAdminpass">
+              <label>관리자 비밀번호</label>
+              <input type="password" id="adminPass" placeholder="강력한 비밀번호 권장"/>
+              <div class="hint">최소 8자 이상의 강력한 비밀번호를 설정하세요.</div>
+              <div class="err-msg" id="errAdminpass">비밀번호를 입력해주세요. (최소 8자)</div>
+            </div>
+
+            <div class="field" id="fldAdminemail">
+              <label>관리자 이메일</label>
+              <input type="email" id="adminEmail" placeholder="admin@example.com"/>
+              <div class="err-msg" id="errAdminemail">유효한 이메일을 입력해주세요.</div>
+            </div>
+
+            <div class="field">
+              <label>WordPress 버전</label>
+              <select id="wpVer">
+                <option value="6.5.4" selected>6.5.4 (최신 안정 버전)</option>
+                <option value="6.4.4">6.4.4</option>
+                <option value="6.3.4">6.3.4</option>
+              </select>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:8px">
+              <button class="btn btn-ghost" style="flex:1;justify-content:center;padding:13px" onclick="showPanel(1)">← 이전</button>
+              <button class="btn btn-primary" style="flex:2;justify-content:center;padding:13px" onclick="goStep3()">
+                다음 단계
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 3: Plan -->
+        <div id="panel3" style="display:none">
+          <div class="card">
+            <div class="card-title">💳 호스팅 플랜 선택</div>
+
+            <div class="plan-grid">
+              <label class="plan-opt selected" onclick="selectPlan(this,'starter')">
+                <input type="radio" name="plan" value="starter" checked/>
+                <div class="po-name">스타터</div>
+                <div class="po-price">₩9,900/월</div>
+                <div class="po-feat">1개 사이트<br>20GB SSD<br>8GB RAM<br>무제한 트래픽</div>
+              </label>
+              <label class="plan-opt" onclick="selectPlan(this,'pro')">
+                <div class="po-badge">인기</div>
+                <input type="radio" name="plan" value="pro"/>
+                <div class="po-name">프로</div>
+                <div class="po-price">₩29,900/월</div>
+                <div class="po-feat">5개 사이트<br>100GB SSD<br>8GB RAM×5<br>스테이징 환경</div>
+              </label>
+              <label class="plan-opt" onclick="selectPlan(this,'enterprise')">
+                <input type="radio" name="plan" value="enterprise"/>
+                <div class="po-name">엔터프라이즈</div>
+                <div class="po-price">₩99,000/월</div>
+                <div class="po-feat">무제한 사이트<br>무제한 SSD<br>전용 리소스<br>전담 매니저</div>
+              </label>
+            </div>
+
+            <div class="field">
+              <label>결제 주기</label>
+              <select id="billingCycle">
+                <option value="monthly">월간 결제</option>
+                <option value="yearly">연간 결제 (20% 할인)</option>
+              </select>
+            </div>
+
+            <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:.85rem;color:rgba(34,197,94,.9)">
+              🎉 <strong>14일 무료 체험</strong> — 카드 정보 없이 바로 시작하세요.
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-ghost" style="flex:1;justify-content:center;padding:13px" onclick="showPanel(2)">← 이전</button>
+              <button class="btn btn-primary" style="flex:2;justify-content:center;padding:13px" onclick="startProvisioning()">
+                WordPress 개설 시작
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: Provisioning + Success -->
+        <div id="panel4" style="display:none">
+          <!-- Provisioning -->
+          <div id="provisionView">
+            <div class="provision-wrap">
+              <div class="provision-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#f97316" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <h2 class="provision-title">WordPress 개설 중...</h2>
+              <p class="provision-sub">잠시만 기다려주세요. WordPress 환경을 구성하고 있습니다.</p>
+              <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+              <div class="progress-step" id="progStep">환경 초기화 중...</div>
+              <div class="step-log" id="stepLog"></div>
+            </div>
+          </div>
+
+          <!-- Success -->
+          <div id="successView" style="display:none">
+            <div class="card" style="text-align:center;padding:40px">
+              <div class="success-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <h2 style="font-family:var(--font-head);font-size:1.5rem;margin-bottom:8px">WordPress 개설 완료! 🎉</h2>
+              <p style="color:var(--muted);font-size:.9rem;margin-bottom:30px" id="successDomain">사이트가 성공적으로 개설되었습니다.</p>
+
+              <div class="cred-box" style="text-align:left">
+                <div style="font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">접속 정보</div>
+                <div class="cred-row">
+                  <span class="cred-label">사이트 URL</span>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="cred-val" id="credUrl">—</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('credUrl').textContent)">복사</button>
+                  </div>
+                </div>
+                <div class="cred-row">
+                  <span class="cred-label">WP 관리자 URL</span>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="cred-val" id="credAdmin">—</span>
+                    <button class="copy-btn" onclick="copyText(document.getElementById('credAdmin').textContent)">복사</button>
+                  </div>
+                </div>
+                <div class="cred-row">
+                  <span class="cred-label">관리자 계정</span>
+                  <span class="cred-val" id="credUser">—</span>
+                </div>
+                <div class="cred-row">
+                  <span class="cred-label">IP 주소</span>
+                  <span class="cred-val" id="credIP">—</span>
+                </div>
+                <div class="cred-row">
+                  <span class="cred-label">PHP 버전</span>
+                  <span class="cred-val" id="credPHP">—</span>
+                </div>
+                <div class="cred-row">
+                  <span class="cred-label">WordPress 버전</span>
+                  <span class="cred-val" id="credWP">—</span>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:12px;margin-top:20px">
+                <a id="btnWpAdmin" href="#" target="_blank" class="btn btn-primary" style="flex:1;justify-content:center;padding:12px">
+                  WP 관리자 열기
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.5"/><polyline points="15 3 21 3 21 9" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="14" x2="21" y2="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                </a>
+                <a href="/dashboard.html" class="btn btn-ghost" style="flex:1;justify-content:center;padding:12px">대시보드로</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+  if (!CP.requireAuth()) throw 0;
+
+  const user = CP.getCurrentUser();
+  document.getElementById('sbAvatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('sbName').textContent = user.name;
+  document.getElementById('sbEmail').textContent = user.email;
+
+  function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+  let selectedPlan = 'starter';
+  let siteData = {};
+  let currentPanel = 1;
+
+  function showPanel(n) {
+    [1,2,3,4].forEach(i => {
+      document.getElementById('panel'+i).style.display = i===n ? '' : 'none';
+    });
+    // Update step bar
+    [1,2,3,4].forEach(i => {
+      const el = document.getElementById('step'+i);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      if (i === n) el.classList.add('active');
+    });
+    currentPanel = n;
+  }
+
+  function setFieldErr(id, msg) {
+    const fld = document.getElementById('fld' + id);
+    if (fld) fld.classList.toggle('has-err', !!msg);
+    const err = document.getElementById('err' + id);
+    if (err) { err.textContent = msg; err.style.display = msg ? 'block' : 'none'; }
+  }
+
+  function sanitizeDomain(input) {
+    input.value = input.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '');
+  }
+
+  function goStep2() {
+    const name = document.getElementById('siteName').value.trim();
+    const domain = document.getElementById('domainInput').value.trim();
+    let ok = true;
+    setFieldErr('Sitename', ''); setFieldErr('Domain', '');
+    if (!name) { setFieldErr('Sitename', '사이트 이름을 입력해주세요.'); ok = false; }
+    if (!domain) { setFieldErr('Domain', '도메인을 입력해주세요.'); ok = false; }
+    else if (domain.length < 3) { setFieldErr('Domain', '도메인은 3자 이상이어야 합니다.'); ok = false; }
+    if (!ok) return;
+
+    // Check domain uniqueness
+    const allSites = CP.getSites();
+    const fullDomain = domain + '.cloudpress.site';
+    if (allSites.find(s => s.domain === fullDomain)) {
+      setFieldErr('Domain', '이미 사용 중인 도메인입니다. 다른 도메인을 입력해주세요.'); return;
+    }
+
+    siteData.name = name;
+    siteData.domain = fullDomain;
+    siteData.lang = document.getElementById('siteLang').value;
+    siteData.php = document.getElementById('phpVer').value;
+
+    // Pre-fill admin email
+    document.getElementById('adminEmail').value = user.email;
+    showPanel(2);
+  }
+
+  function goStep3() {
+    const adminUser = document.getElementById('adminUser').value.trim();
+    const adminPass = document.getElementById('adminPass').value;
+    const adminEmail = document.getElementById('adminEmail').value.trim();
+    let ok = true;
+    setFieldErr('Adminuser', ''); setFieldErr('Adminpass', ''); setFieldErr('Adminemail', '');
+    if (!adminUser) { setFieldErr('Adminuser', '관리자 계정을 입력해주세요.'); ok = false; }
+    if (adminPass.length < 8) { setFieldErr('Adminpass', '비밀번호는 최소 8자 이상이어야 합니다.'); ok = false; }
+    if (!adminEmail || !adminEmail.includes('@')) { setFieldErr('Adminemail', '유효한 이메일을 입력해주세요.'); ok = false; }
+    if (!ok) return;
+
+    siteData.adminUser = adminUser;
+    siteData.adminEmail = adminEmail;
+    siteData.wpVersion = document.getElementById('wpVer').value;
+    showPanel(3);
+  }
+
+  function selectPlan(el, plan) {
+    document.querySelectorAll('.plan-opt').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlan = plan;
+  }
+
+  const PROV_STEPS = [
+    [5,  '서버 프로비저닝 중...'],
+    [15, 'Cloudflare 엣지 등록 중...'],
+    [25, 'MySQL 데이터베이스 생성 중...'],
+    [38, 'WordPress 6.5.4 다운로드 중...'],
+    [52, 'WordPress 파일 배포 중...'],
+    [62, 'wp-config.php 설정 중...'],
+    [72, 'WordPress 설치 실행 중...'],
+    [80, '플러그인 및 테마 초기화 중...'],
+    [88, 'SSL/TLS 인증서 발급 중...'],
+    [94, 'Cloudflare CDN 연결 중...'],
+    [100,'완료!'],
+  ];
+
+  function startProvisioning() {
+    siteData.plan = selectedPlan;
+    siteData.billing = document.getElementById('billingCycle').value;
+    showPanel(4);
+
+    const fill = document.getElementById('progFill');
+    const stepLbl = document.getElementById('progStep');
+    const log = document.getElementById('stepLog');
+    let idx = 0;
+
+    function runStep() {
+      if (idx >= PROV_STEPS.length) {
+        finishProvisioning();
+        return;
+      }
+      const [pct, msg] = PROV_STEPS[idx];
+      fill.style.width = pct + '%';
+      stepLbl.textContent = msg;
+      const line = document.createElement('div');
+      if (pct < 100) {
+        line.className = 'cur';
+        line.textContent = '→ ' + msg;
+      } else {
+        line.className = 'ok';
+        line.textContent = '✓ 모든 단계 완료';
+      }
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+
+      if (idx > 0) {
+        const prev = log.children[log.children.length - 2];
+        if (prev) { prev.className = 'ok'; prev.textContent = '✓ ' + PROV_STEPS[idx-1][1].replace(' 중...','완료'); }
+      }
+      idx++;
+      const delay = idx === 1 ? 400 : Math.random() * 600 + 500;
+      setTimeout(runStep, delay);
+    }
+    runStep();
+  }
+
+  function finishProvisioning() {
+    // Save site to localStorage
+    const site = {
+      id: CP.genId(),
+      userId: user.id,
+      name: siteData.name,
+      domain: siteData.domain,
+      status: 'active',
+      plan: siteData.plan,
+      php: siteData.php,
+      wpVersion: siteData.wpVersion,
+      adminUser: siteData.adminUser,
+      adminEmail: siteData.adminEmail,
+      ip: CP.genIP(),
+      ssl: true,
+      storageUsed: parseFloat((Math.random() * 0.3 + 0.1).toFixed(2)),
+      backups: generateBackups(),
+      createdAt: Date.now(),
+      lang: siteData.lang,
+    };
+    CP.addSite(site);
+
+    // Update user plan
+    const users = CP.getUsers();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1 && users[idx].plan === 'free') {
+      users[idx].plan = siteData.plan;
+      CP.saveUsers(users);
+    }
+
+    // Show success
+    setTimeout(() => {
+      document.getElementById('provisionView').style.display = 'none';
+      document.getElementById('successView').style.display = '';
+
+      const url = 'https://' + site.domain;
+      document.getElementById('successDomain').textContent = site.domain + ' 이 성공적으로 개설되었습니다.';
+      document.getElementById('credUrl').textContent = url;
+      document.getElementById('credAdmin').textContent = url + '/wp-admin';
+      document.getElementById('credUser').textContent = site.adminUser;
+      document.getElementById('credIP').textContent = site.ip;
+      document.getElementById('credPHP').textContent = 'PHP ' + site.php;
+      document.getElementById('credWP').textContent = 'WordPress ' + site.wpVersion;
+      document.getElementById('btnWpAdmin').href = url + '/wp-admin';
+
+      // Update step 4 to done
+      document.getElementById('step4').classList.add('done');
+      document.getElementById('step4').classList.remove('active');
+
+      showToast('WordPress 사이트 개설 완료! 🎉', 'success');
+    }, 600);
+  }
+
+  function generateBackups() {
+    const now = Date.now();
+    return [1,2,3].map(i => ({
+      id: CP.genId(),
+      date: now - i * 86400000,
+      size: (Math.random() * 50 + 10).toFixed(1) + ' MB',
+      type: 'auto'
+    }));
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('클립보드에 복사되었습니다.', 'success'));
+  }
+
+  // Pre-fill admin email from user
+  document.getElementById('adminEmail').value = user.email;
+</script>
+</body>
+</html>
